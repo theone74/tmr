@@ -447,9 +447,11 @@ async function saveRSS(movies){
 				<author>kinopoisk</author>
 				<description>
 					<![CDATA[
-						<img src="https://st.kp.yandex.net/images/${movie.data.bigPosterURL}" alt="lostfilm.tv" style="vertical-align: middle;" />
-						<h1>${movie.data.nameRU} (${movie.data.nameEN}) (${movie.data.year})</h1>
-						<pre>${movie.data.description}</pre>
+						<img src="https://st.kp.yandex.net/images/${movie.data.bigPosterURL}" alt="lostfilm.tv" style="vertical-align: middle;" width=250px/>
+						<div class="title">${movie.data.nameRU} (${movie.data.nameEN}) (${movie.data.year})</div>
+						<div class="info">
+							<div class="desc">${movie.data.description}</div>
+						</div>
 					]]>
 				</description>
 			</item>`;
