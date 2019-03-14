@@ -882,14 +882,14 @@ if (INTERVAL) {
 // web server
 if (SERVER){
 	http.createServer(function (request, response) {
-		console.log('requested', request.url);
+		console.log('requested', request.url, 'from', request.connection.remoteAddress);
 
 		if (BASICAUTH) {
 			let userpass = Buffer.from((request.headers.authorization || '').split(' ')[1] || '', 'base64').toString();
 			if (userpass !== BASICAUTH) {
 				response.writeHead(401, { 'WWW-Authenticate': 'Basic realm="nope"' });
 				response.end('HTTP Error 401 Unauthorized: Access is denied');
-				console.error('unauthorized access', request.url, 'from', userpass);
+				console.error('unauthorized access', request.url, 'user', userpass);
 				return;
 			}
 		}
@@ -946,6 +946,10 @@ if (SERVER){
 		});
 	
 	
-	}).listen(PORT);
+	})
+	// .on('connection', function(sock) {
+	// 	console.log('Client connected from ' + sock.remoteAddress);
+	// })
+	.listen(PORT);
 	console.log('Web server started at', PORT);
 }
