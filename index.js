@@ -29,8 +29,8 @@ const RSS_TTL = process.env.RSS_TTL || 30;
 const INTERVAL = process.env.INTERVAL || '';
 const SERVER = parseInt(process.env.SERVER || 0);
 const RUN = parseInt(process.env.RUN || 0);
+const PORT = parseInt(process.env.PORT || 3000);
 
-// console.log(RUN, !!RUN);
 
 // https://stackoverflow.com/a/10647272
 function dateFormat (date, fstr, utc) {
@@ -565,5 +565,6 @@ if (SERVER){
 		});
 	
 	
-	}).listen(8125);
+	}).listen(PORT);
+	console.log('Web server started at', PORT);
 }
