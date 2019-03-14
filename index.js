@@ -894,7 +894,7 @@ if (SERVER){
 			}
 		}
 	
-		var filePath = '.' + request.url;
+		let filePath = ('.' + request.url).replace('..', '.');
 	
 		switch (filePath) {
 			case './html': 
@@ -905,10 +905,10 @@ if (SERVER){
 			case './rss/': {
 				filePath = './info.rss';
 			} break;
-			default: {
-				response.writeHead(404);
-				response.end('', 'utf-8');
-			} break;
+			// default: {
+			// 	response.writeHead(404);
+			// 	response.end('', 'utf-8');
+			// } break;
 		}	
 	
 		var extname = path.extname(filePath);
@@ -920,8 +920,10 @@ if (SERVER){
 			case '.html':
 				contentType = 'text/html';
 				break;
+			case '.ico':
+				contentType = 'image/x-icon';
+				break;
 		}
-	
 	
 	
 		fs.readFile(path.join(SAVE_PATH, filePath), function(error, content) {
