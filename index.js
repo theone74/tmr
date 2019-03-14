@@ -447,9 +447,9 @@ async function saveRSS(movies){
 				<author>kinopoisk</author>
 				<description>
 					<![CDATA[
-						<img src="https://st.kp.yandex.net/images/${movie.data.bigPosterURL}" alt="lostfilm.tv" style="vertical-align: middle;" width=250px/>
-						<div class="title">${movie.data.nameRU} (${movie.data.nameEN}) (${movie.data.year})</div>
-						<div class="info">
+						<div style="font-size: 26pt; margin-bottom: 10px;">${movie.data.nameRU} (${movie.data.nameEN}) (${movie.data.year})</div>
+						<img src="https://st.kp.yandex.net/images/${movie.data.bigPosterURL}" alt="lostfilm.tv" style="margin-right: 15px; display: inline-block;" width=250px/>
+						<div style="display: inline-block; width: 50%; vertical-align: top; font-size: medium;">
 							<div class="desc">${movie.data.description}</div>
 						</div>
 					]]>
