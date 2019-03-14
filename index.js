@@ -782,7 +782,7 @@ async function saveHTML(movies) {
 		descriptionBlock.push(util.format(descriptionTemplate, "описание", movie["description"]));
 
 		for(const torrent of movie.torrents) {
-			buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" alt="${torrent['name']}">${torrent['type']}</button>`)
+			buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" title="${torrent['name']}">${torrent['type']}</button>`)
 		}
 
 		let ratingColor = movie["ratingFloat"] >= 7 ? "#3bb33b" : "#aaa";
