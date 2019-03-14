@@ -341,11 +341,11 @@ async function rutorLinks(filmId) {
 	const finalResult = [];
 	//"<a class=\"downgif\" href=\"(.*?)\">"
 
-	//  /^<td.*?>.*?"downgif"\s+href="(.*?)">.*?<a\s+href="\/torrent\/.*?>(.*?)<\/a>.*?<\/td>.*?alt="S".*?(\d+)<\/span>/gms
-	const re = /^<td.*?>.*?"downgif"\s+href="(.*?)">.*?<a\s+href="\/torrent\/.*?>(.*?)<\/a>.*?<\/td>.*?alt="S".*?(\d+)<\/span>/gms;
+	const re = /<tr\s+class="(gai|tum)">.*?"downgif"\s+href="(.*?)">.*?href="(magnet:.*?)".*?href="(\/torrent\/.*?)">(.*?)<\/a>.*?right">(\d[^<]*?GB)<.*?"S"\s+\/>[^<]*?(\d+)<.*?<\/tr>/gms;
 	for (let match; (match = re.exec(data)) !== null;) {
 
-		let [link, name, seeders] = [match[1], match[2], match[3]].map(x => x.trim());
+		// let [,link, magnet, size, , name, seeders] = [match[1], match[2], match[3], match[4]].map(x => x.trim());
+		let [,,link, magnet, rutorpage, name, size, seeders] = match.map(x => x.trim());
 
 		let [realName, ...tmptags] = name.split('|');
 		let tags = [];
@@ -371,10 +371,13 @@ async function rutorLinks(filmId) {
 						result['UHD BDRemux HDR']['link'] = link;
 						result['UHD BDRemux HDR']['seeders'] = seeders;
 						result['UHD BDRemux HDR']['name'] = name;
+						result['UHD BDRemux HDR']['magnet'] = magnet;
+						result['UHD BDRemux HDR']['rutorpage'] = rutorpage;
+						result['UHD BDRemux HDR']['size'] = size;
 					}
 				}
 				else {
-					result['UHD BDRemux HDR'] = {link, seeders, name};
+					result['UHD BDRemux HDR'] = {link, magnet, rutorpage, seeders, name, size};
 				}
 			}
 			else if (result['UHD BDRemux SDR']) {
@@ -382,9 +385,12 @@ async function rutorLinks(filmId) {
 					result['UHD BDRemux SDR']['link'] = link;
 					result['UHD BDRemux SDR']['seeders'] = seeders;
 					result['UHD BDRemux SDR']['name'] = name;
+					result['UHD BDRemux SDR']['magnet'] = magnet;
+					result['UHD BDRemux SDR']['rutorpage'] = rutorpage;
+					result['UHD BDRemux SDR']['size'] = size;
 				}
 				else {
-					result['UHD BDRemux SDR'] = {link, seeders, name};
+					result['UHD BDRemux SDR'] = {link, magnet, rutorpage, seeders, name, size};
 				}
 			}
 		}
@@ -394,10 +400,13 @@ async function rutorLinks(filmId) {
 					result['BDRemux']['link'] = link;
 					result['BDRemux']['seeders'] = seeders;
 					result['BDRemux']['name'] = name;
+					result['BDRemux']['magnet'] = magnet;
+					result['BDRemux']['rutorpage'] = rutorpage;
+					result['BDRemux']['size'] = size;
 				}
 			}
 			else {
-				result['BDRemux'] = {link, seeders, name};
+				result['BDRemux'] = {link, magnet, rutorpage, seeders, name, size};
 			}
 		}
 		else if (realName.includes('BDRIP') && realName.includes('HEVC') && realName.includes('1080')) {
@@ -406,10 +415,13 @@ async function rutorLinks(filmId) {
 					result['BDRip-HEVC 1080p']['link'] = link;
 					result['BDRip-HEVC 1080p']['seeders'] = seeders;
 					result['BDRip-HEVC 1080p']['name'] = name;
+					result['BDRip-HEVC 1080p']['magnet'] = magnet;
+					result['BDRip-HEVC 1080p']['rutorpage'] = rutorpage;
+					result['BDRip-HEVC 1080p']['size'] = size;
 				}
 			}
 			else {
-				result['BDRip-HEVC 1080p'] = {link, seeders, name};
+				result['BDRip-HEVC 1080p'] = {link, magnet, rutorpage, seeders, name, size};
 			}
 		}
 		else if (realName.includes('BDRIP') && realName.includes('1080')) {
@@ -418,10 +430,13 @@ async function rutorLinks(filmId) {
 					result['BDRip 1080p']['link'] = link;
 					result['BDRip 1080p']['seeders'] = seeders;
 					result['BDRip 1080p']['name'] = name;
+					result['BDRip 1080p']['magnet'] = magnet;
+					result['BDRip 1080p']['rutorpage'] = rutorpage;
+					result['BDRip 1080p']['size'] = size;
 				}
 			}
 			else {
-				result['BDRip 1080p'] = {link, seeders, name};
+				result['BDRip 1080p'] = {link, magnet, rutorpage, seeders, name, size};
 			}
 		}
 		else if (realName.includes('WEB-DL') && realName.includes('2160')) {
@@ -431,10 +446,13 @@ async function rutorLinks(filmId) {
 						result['WEB-DL 2160p HDR']['link'] = link;
 						result['WEB-DL 2160p HDR']['seeders'] = seeders;
 						result['WEB-DL 2160p HDR']['name'] = name;
+						result['WEB-DL 2160p HDR']['magnet'] = magnet;
+						result['WEB-DL 2160p HDR']['rutorpage'] = rutorpage;
+						result['WEB-DL 2160p HDR']['size'] = size;
 					}
 				}
 				else {
-					result['WEB-DL 2160p HDR'] = {link, seeders, name};
+					result['WEB-DL 2160p HDR'] = {link, magnet, rutorpage, seeders, name, size};
 				}
 			}
 			else if (result['WEB-DL 2160p SDR']) {
@@ -442,10 +460,13 @@ async function rutorLinks(filmId) {
 					result['WEB-DL 2160p SDR']['link'] = link;
 					result['WEB-DL 2160p SDR']['seeders'] = seeders;
 					result['WEB-DL 2160p SDR']['name'] = name;
+					result['WEB-DL 2160p SDR']['magnet'] = magnet;
+					result['WEB-DL 2160p SDR']['rutorpage'] = rutorpage;
+					result['WEB-DL 2160p SDR']['size'] = size;
 				}
 			}
 			else {
-				result['WEB-DL 2160p SDR'] = {link, seeders, name};
+				result['WEB-DL 2160p SDR'] = {link, magnet, rutorpage, seeders, name, size};
 			}
 		}
 		else if (realName.includes('WEB-DL') && realName.includes('1080')) {
@@ -454,10 +475,13 @@ async function rutorLinks(filmId) {
 					result['WEB-DL 1080p']['link'] = link;
 					result['WEB-DL 1080p']['seeders'] = seeders;
 					result['WEB-DL 1080p']['name'] = name;
+					result['WEB-DL 1080p']['magnet'] = magnet;
+					result['WEB-DL 1080p']['rutorpage'] = rutorpage;
+					result['WEB-DL 1080p']['size'] = size;
 				}
 			}
 			else {
-				result['WEB-DL 1080p'] = {link, seeders, name};
+				result['WEB-DL 1080p'] = {link, magnet, rutorpage, seeders, name, size};
 			}
 		}
 
@@ -468,28 +492,36 @@ async function rutorLinks(filmId) {
 		}
 
 		if (result['WEB-DL 1080p']) {
-			finalResult.push({link: result['WEB-DL 1080p']['link'], name: result['WEB-DL 1080p']['name'], type: 'WEB-DL 1080p'});
+			const nm = 'WEB-DL 1080p';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['WEB-DL 2160p SDR']) {
-			finalResult.push({link: result['WEB-DL 2160p SDR']['link'], name: result['WEB-DL 2160p SDR']['name'], type: 'WEB-DL 2160p SDR'});
+			const nm = 'WEB-DL 2160p SDR';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['WEB-DL 2160p HDR']) {
-			finalResult.push({link: result['WEB-DL 2160p HDR']['link'], name: result['WEB-DL 2160p HDR']['name'], type: 'WEB-DL 2160p HDR'});
+			const nm = 'WEB-DL 2160p HDR';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['BDRip 1080p']) {
-			finalResult.push({link: result['BDRip 1080p']['link'], name: result['BDRip 1080p']['name'], type: 'BDRip 1080p'});
+			const nm = 'BDRip 1080p';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['BDRip-HEVC 1080p']) {
-			finalResult.push({link: result['BDRip-HEVC 1080p']['link'], name: result['BDRip-HEVC 1080p']['name'], type: 'BDRip-HEVC 1080p'});
+			const nm = 'BDRip-HEVC 1080p';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['BDRemux']) {
-			finalResult.push({link: result['BDRemux']['link'], name: result['BDRemux']['name'], type: 'BDRemux'});
+			const nm = 'BDRemux';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['UHD BDRemux SDR']) {
-			finalResult.push({link: result['UHD BDRemux SDR']['link'], name: result['UHD BDRemux SDR']['name'], type: 'UHD BDRemux SDR'});
+			const nm = 'UHD BDRemux SDR';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 		if (result['UHD BDRemux HDR']) {
-			finalResult.push({link: result['UHD BDRemux HDR']['link'], name: result['UHD BDRemux HDR']['name'], type: 'UHD BDRemux HDR'});
+			const nm = 'UHD BDRemux HDR';
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
 		}
 	
 	}
@@ -530,7 +562,12 @@ async function saveRSS(movies){
 						<img src="${movie.posterURL}" alt="lostfilm.tv" style="margin-right: 15px; display: inline-block;" width=250px/>
 						<div style="display: inline-block; width: 50%; vertical-align: top; font-size: medium;">
 							<div class="date">${dateFormat(movie.pubDate, '%d.%m.%Y')}</div>
+							<div class="size">${torrent.size}</div>
 							<div class="desc">${movie.description}</div>
+							<div class="links">
+								<a href="${torrent.rutorpage}">${torrent.name}</a>
+								<a href="${torrent.magnet}">MAGNET</a>
+							</div>
 						</div>
 					]]>
 				</description>
@@ -690,9 +727,11 @@ async function saveHTML(movies) {
 			transition: background-color 0.1s, color 0.1s, border-color 0.1s;
 			text-align: center;
 			text-decoration: none;
-			width: 160px;
+			/* width: 160px; */
 			margin: 10px 0 10px 15px;
 			display:inline-block;
+			padding-left: 15px;
+			padding-right: 15px;
 		}
 		
 		.infoTable {
@@ -771,8 +810,8 @@ async function saveHTML(movies) {
 		descriptionBlock.push(util.format(descriptionTemplate, "год", movie["year"]));
 		descriptionBlock.push(util.format(descriptionTemplate, "Дата релиза", dateFormat(movie["pubDate"], '%d.%m.%Y')));
 		descriptionBlock.push(util.format(descriptionTemplate, "страна", movie["country"]));
-		descriptionBlock.push(util.format(descriptionTemplate, "режиссёр", movie["directors"]));
-		descriptionBlock.push(util.format(descriptionTemplate, "актёры", movie["actors"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "режиссёр", movie["directors"].join(', ')));
+		descriptionBlock.push(util.format(descriptionTemplate, "актёры", movie["actors"].join(', ')));
 		descriptionBlock.push(util.format(descriptionTemplate, "жанр", movie["genre"]));
 		if (movie["ratingAgeLimits"] > 0) {
 			descriptionBlock.push(util.format(descriptionTemplate, "возраст", movie["ratingAgeLimits"]));
@@ -783,7 +822,7 @@ async function saveHTML(movies) {
 		descriptionBlock.push(util.format(descriptionTemplate, "описание", movie["description"]));
 
 		for(const torrent of movie.torrents) {
-			buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" title="${torrent['name']}">${torrent['type']}</button>`)
+			buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" title="${torrent['name']}">${torrent['type']} (${torrent['size']})</button>`)
 		}
 
 		let ratingColor = movie["ratingFloat"] >= 7 ? "#3bb33b" : "#aaa";
