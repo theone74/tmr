@@ -32,6 +32,7 @@ const PORT = parseInt(process.env.PORT || 3000);
 const RUTOR_SLEEP = parseInt(process.env.RUTOR_SLEEP || 0);
 const KINOPOISK_SLEEP = parseInt(process.env.RUTOR_SLEEP || 0);
 const PROXY = process.env.PROXY || '';
+const BASICAUTH = process.env.BASICAUTH || '';
 
 
 function assert(condition, msg) {
@@ -882,6 +883,16 @@ if (INTERVAL) {
 if (SERVER){
 	http.createServer(function (request, response) {
 		console.log('requested', request.url);
+
+		if (BASICAUTH) {
+			let userpass = Buffer.from((request.headers.authorization || '').split(' ')[1] || '', 'base64').toString();
+			if (userpass !== BASICAUTH) {
+				response.writeHead(401, { 'WWW-Authenticate': 'Basic realm="nope"' });
+				response.end('HTTP Error 401 Unauthorized: Access is denied');
+				console.error('unauthorized access', request.url, 'from', userpass);
+				return;
+			}
+		}
 	
 		var filePath = '.' + request.url;
 	
