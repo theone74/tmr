@@ -1,0 +1,24 @@
+{
+  "name": "torrentmoviereleases",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git"
+  },
+  "keywords": [
+    "torrent",
+    "movie",
+    "releases",
+    "kinopoisk"
+  ],
+  "author": "Anton R.",
+  "license": "ISC",
+  "dependencies": {
+    "pm2": "^3.4.0"
+  }
+}
