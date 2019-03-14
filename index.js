@@ -493,35 +493,35 @@ async function rutorLinks(filmId) {
 
 		if (result['WEB-DL 1080p']) {
 			const nm = 'WEB-DL 1080p';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['WEB-DL 2160p SDR']) {
 			const nm = 'WEB-DL 2160p SDR';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['WEB-DL 2160p HDR']) {
 			const nm = 'WEB-DL 2160p HDR';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['BDRip 1080p']) {
 			const nm = 'BDRip 1080p';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['BDRip-HEVC 1080p']) {
 			const nm = 'BDRip-HEVC 1080p';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['BDRemux']) {
 			const nm = 'BDRemux';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['UHD BDRemux SDR']) {
 			const nm = 'UHD BDRemux SDR';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 		if (result['UHD BDRemux HDR']) {
 			const nm = 'UHD BDRemux HDR';
-			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['magrutorpagenet'], size: result[nm]['size']});
+			finalResult.push({type: nm, link: result[nm]['link'], name: result[nm]['name'], magnet: result[nm]['magnet'], rutorpage: result[nm]['rutorpage'], size: result[nm]['size']});
 		}
 	
 	}
