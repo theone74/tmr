@@ -18,5 +18,7 @@
   ],
   "author": "Anton R.",
   "license": "ISC",
-  "dependencies": {}
+  "dependencies": {
+    "proxy-agent": "^3.0.3"
+  }
 }

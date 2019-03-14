@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 const fs = require('fs');
 const path = require('path');
+const ProxyAgent = require('proxy-agent');
 
 
 
@@ -21,8 +22,6 @@ const POSTER_URL = "https://st.kp.yandex.net/images/{}{}width=360";
 const RUTOR_DOMAIN = "rutor.info";
 const RUTOR_BASE_URL = "/search/0/0/010/0/film%20";
 const SAVE_PATH = "./data";
-const SOCKS_IP = process.env.SOCKS_IP || "";
-const SOCKS_PORT = process.env.SOCKS_PORT || 0;
 const RSS_URL = process.env.RSS_URL || 'url';
 const RSS_EMAIL = process.env.RSS_EMAIL || 'rss@example.com';
 const RSS_TTL = process.env.RSS_TTL || 30;
@@ -30,6 +29,10 @@ const INTERVAL = process.env.INTERVAL || '';
 const SERVER = parseInt(process.env.SERVER || 0);
 const RUN = parseInt(process.env.RUN || 0);
 const PORT = parseInt(process.env.PORT || 3000);
+const RUTOR_SLEEP = parseInt(process.env.RUTOR_SLEEP || 0);
+const KINOPOISK_SLEEP = parseInt(process.env.RUTOR_SLEEP || 0);
+const PROXY = process.env.PROXY || '';
+
 
 function assert(condition, msg) {
 	if (!condition) {
@@ -90,6 +93,9 @@ function doRequest(options) {
 	}); 
 }
 
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function digitalReleases(){
 
@@ -136,6 +142,10 @@ async function digitalReleases(){
 				"X-SIGNATURE":         crypto.createHash('md5').update(hashString).digest("hex") //hashlib.md5(hashString.encode('utf-8')).hexdigest(),
 			}
 		};
+
+		if (PROXY) {
+			// options.agent = new ProxyAgent(PROXY);
+		}
 
 		let data, status;
 
@@ -213,6 +223,10 @@ async function filmDetail(filmId) {
 		}
 	};
 
+	if (PROXY) {
+		// options.agent = new ProxyAgent(PROXY);
+	}
+
 	let data, status;
 
 	try{
@@ -270,8 +284,8 @@ async function filmDetail(filmId) {
 		const [day, month, year] = assert(data['data']['rentData']['premiereDigital'], 'Validate data error. Empty nameRU field').split('.').map(p=>parseInt(p));
 		result['pubDate'] = new Date(year, month-1, day, (new Date()).getTimezoneOffset() / 60 * -1);
 
-		// console.dir(data['data']['nameRU'], {depth: null});
-		// process.exit(1);
+		KINOPOISK_SLEEP && await sleep(KINOPOISK_SLEEP);
+
 		return result;
 	}
 	catch (e) {
@@ -296,10 +310,14 @@ async function rutorLinks(filmId) {
 		}
 	};
 
+	if (PROXY) {
+		options.agent = new ProxyAgent(PROXY);
+	}
+
 	try{
 		[data, status] = await doRequest(options); //.then(([str, status])=>{console.log(JSON.parse(str), status)});
 		if (status != 200) {
-			console.error("Can't read rutor");
+			console.error("Can't read rutor", filmId);
 			console.error(data);
 			process.exit(1);
 		}
@@ -308,9 +326,10 @@ async function rutorLinks(filmId) {
 		// return data;
 	}
 	catch (e) {
-		console.error("Can't read rutor");
+		console.error("Can't read rutor", filmId);
 		console.error(e);
-		process.exit(1);
+		//process.exit(1);
+		return false;
 	}
 
 	if (data.indexOf("<div id=\"index\">") < 0) {
@@ -473,6 +492,8 @@ async function rutorLinks(filmId) {
 		}
 	
 	}
+
+	RUTOR_SLEEP && await sleep(RUTOR_SLEEP);
 
 	return finalResult;
 }
@@ -817,16 +838,17 @@ async function build() {
 	const releases = await digitalReleases();
 	let movies = [];
 
-	// for(const filmId of releases) {
-	// 	const detail = await getFilmWithLinks(filmId);
-	// 	if (!detail) continue;
-	// 	movies.push(detail);
-	// }
+	for(const filmId of releases) {
+		const detail = await getFilmWithLinks(filmId);
+		if (!detail) continue;
+		movies.push(detail);
+	}
 
-	let wait = [];
-	for(const filmId of releases) 
-		wait.push(getFilmWithLinks(filmId));
-	movies = await Promise.all(wait);
+	// super fast but rutor block
+	// let wait = [];
+	// for(const filmId of releases) 
+	// 	wait.push(getFilmWithLinks(filmId));
+	// movies = await Promise.all(wait);
 
 	// sort by release date
 	movies = movies.filter(m=>m!==null).sort((a,b)=>(b.pubDate.getTime() - a.pubDate.getTime()))
