@@ -31,6 +31,15 @@ const SERVER = parseInt(process.env.SERVER || 0);
 const RUN = parseInt(process.env.RUN || 0);
 const PORT = parseInt(process.env.PORT || 3000);
 
+function assert(condition, msg) {
+	if (!condition) {
+		//console.error.call(null, ...log);
+		//process.exit(1);
+		throw new Error(msg);
+	}
+	return condition;
+}
+
 
 // https://stackoverflow.com/a/10647272
 function dateFormat (date, fstr, utc) {
@@ -204,6 +213,8 @@ async function filmDetail(filmId) {
 		}
 	};
 
+	let data, status;
+
 	try{
 		[data, status] = await doRequest(options); //.then(([str, status])=>{console.log(JSON.parse(str), status)});
 		if (status != 200) {
@@ -212,13 +223,63 @@ async function filmDetail(filmId) {
 			process.exit(1);
 		}
 		data = JSON.parse(data);
-		// TODO check fields
-		return data;
+
+		const result = {};
+		assert(data['resultCode'] == 0, 
+			`Can\'t read json. resultCode: ${data['resultCode']} message: ${data['message'] || ''}`);
+		assert(data['data'] && typeof data['data'] === 'object', 
+			'Can\'t read json. Empty data field or not object');
+
+		result['nameRU'] = assert(data['data']['nameRU'], 'Validate data error. Empty nameRU field');
+		result['nameEN'] = data['data']['nameEN'] || '';
+		result['year'] = assert(data['data']['year'], 'Validate data error. Empty year field');
+		result['country'] = assert(data['data']['country'], 'Validate data error. Empty country field');
+		result['genre'] = assert(data['data']['genre'], 'Validate data error. Empty genre field');
+		result['description'] = assert(data['data']['description'], 'Validate data error. Empty description field');
+		result['ratingAgeLimits'] = data['data']['ratingAgeLimits'] || '-';
+		result['posterURL'] = "https://st.kp.yandex.net/images/" + assert(data['data']['bigPosterURL'], 'Validate data error. Empty bigPosterURL field');
+		result['filmLength'] = assert(data['data']['filmLength'], 'Validate data error. Empty filmLength field');
+		assert(typeof data['data']['ratingData'] === 'object', 'Validate data error. Empty ratingData field');
+		result['rating'] = assert(data['data']['ratingData']['rating'], 'Validate data error. Empty rating field');
+		result['ratingIMDb'] = data['data']['ratingData']['ratingIMDb'] || 0;
+		result['webURL'] = assert(data['data']['webURL'], 'Validate data error. Empty webURL field');
+		assert(Array.isArray(data['data']['creators']), 'Validate data error. Empty creators field');
+		result['directors'] = [];
+		result['actors'] = [];
+		
+		for(const personsGroup of data['data']['creators']) {
+			assert(Array.isArray(personsGroup), 'Validate data error. Empty creators field');
+			for(const person of personsGroup) {
+				assert(typeof person === 'object', 'Validate data error. Empty creators > person field');
+				const prof = person['professionKey'] || 'actor';
+				const name = person['nameRU'] || person['nameEN'];
+				if (!name) continue;
+				switch(prof) {
+					case 'director': {
+						result['directors'].push(name);
+					} break;
+					case 'actor': {
+						result['actors'].push(name);
+					} break;
+				}
+			}
+		}
+
+		result['ratingFloat'] = ((parseFloat(result['ratingIMDb']) + parseFloat(result['rating'])) / 2 + 0.001).toPrecision(1);
+
+		const [day, month, year] = assert(data['data']['rentData']['premiereDigital'], 'Validate data error. Empty nameRU field').split('.').map(p=>parseInt(p));
+		result['pubDate'] = new Date(year, month-1, day, (new Date()).getTimezoneOffset() / 60 * -1);
+
+		// console.dir(data['data']['nameRU'], {depth: null});
+		// process.exit(1);
+		return result;
 	}
 	catch (e) {
+		console.dir(data['data'], {depth: null});
 		console.error("Can't read", requestMethod);
 		console.error(e);
-		process.exit(1);
+		// process.exit(1);
+		return null;
 	}
 }
 
@@ -432,32 +493,27 @@ async function saveRSS(movies){
 			<ttl>${RSS_TTL}</ttl>`;
 
 	for(const movie of movies) {
-		let [day, month, year] = movie.data.rentData.premiereDigital.split('.').map(p=>parseInt(p));
-		// new Date(year, month, day)
-		// console.log(day, month, year);
 		for(const torrent of movie.torrents) {
-			let pubDate = new Date(year, month-1, day, (new Date()).getTimezoneOffset() / 60 * -1);
 			rss += `<item>
-			<pubDate>${pubDate.toGMTString()}</pubDate>
+			<pubDate>${movie.pubDate.toGMTString()}</pubDate>
 				<title>
-					<![CDATA[${movie.data.nameRU} (${movie.data.genre}) (${torrent.type})]]>
+					<![CDATA[${movie.nameRU} (${movie.genre}) (${torrent.type})]]>
 				</title>
-				<guid>${movie.data.webURL}#${pubDate.getTime()}-${torrent.type.replace(' ', '_')}</guid>
+				<guid>${movie.webURL}#${movie.pubDate.getTime()}-${torrent.type.replace(' ', '_')}</guid>
 				<link>${torrent.link}</link>
 				<author>kinopoisk</author>
 				<description>
 					<![CDATA[
-						<div style="font-size: 26pt; margin-bottom: 10px;">${movie.data.nameRU} (${movie.data.nameEN}) (${movie.data.year})</div>
-						<img src="https://st.kp.yandex.net/images/${movie.data.bigPosterURL}" alt="lostfilm.tv" style="margin-right: 15px; display: inline-block;" width=250px/>
+						<div style="font-size: 26pt; margin-bottom: 10px;">${movie.nameRU} (${movie.nameEN}) (${movie.year})</div>
+						<img src="${movie.posterURL}" alt="lostfilm.tv" style="margin-right: 15px; display: inline-block;" width=250px/>
 						<div style="display: inline-block; width: 50%; vertical-align: top; font-size: medium;">
-							<div class="date">${dateFormat(pubDate, '%d.%m.%Y')}</div>
-							<div class="desc">${movie.data.description}</div>
+							<div class="date">${dateFormat(movie.pubDate, '%d.%m.%Y')}</div>
+							<div class="desc">${movie.description}</div>
 						</div>
 					]]>
 				</description>
 			</item>`;
 		}
-		// console.log(movie);
 	}
 
 	rss += '</channel></rss>';
@@ -470,28 +526,316 @@ async function saveRSS(movies){
 }
 
 
+async function saveHTML(movies) {
+	let html = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+	<html xmlns="http://www.w3.org/1999/xhtml" lang="ru-RU">
+	<head>
+	<meta charset="utf-8">
+	<meta content="width=960" name="viewport">
+	<title>Новые цифровые релизы</title>
+	<style type="text/css">
+		html {
+			background-color: #e6e6e6;
+			min-width: 1024px;
+			width: 100%;
+			position: relative;
+		}
+	
+		body {
+			background: #e6e6e6;
+			color: #333;
+			font-family: tahoma,verdana,arial;
+			margin: 0;
+			padding: 0 0 22px 0;
+		}
+		
+		* {
+			outline: 0;
+		}
+		
+		.shadow {
+			box-shadow: 0px 10px 20px 0px rgba(0, 0, 0, 0.2);
+			width: 850px;
+			margin: 0 auto;
+			position: relative;
+			z-index: 1;
+		}
+		
+		.block1 {
+			width: 850px;
+			position: relative;
+			margin: 0 auto;
+		}
+		
+		.block2 {
+			position: relative;
+			background-color: #f2f2f2;
+			width: 100%;
+		}
+		
+		.block2::before, .block2::after {
+			content: "";
+			display: table;
+		}
+		
+		.block2::after, .photoInfoTable::after {
+			clear: both;
+		}
+		
+		.photoInfoTable::before, .photoInfoTable::after {
+			content: "";
+			display: table;
+		}
+		
+		.photoInfoTable {
+			width: 850px;
+			float: left;
+		}
+		
+		.headerFilm h1 {
+			margin: 0;
+			padding: 0;
+		}
+		
+		.headerFilm {
+			width: 620px;
+			padding: 20px 20px 20px 15px;
+			position: relative;
+		}
+		
+		
+		H1.moviename {
+			vertical-align: middle;
+			padding-left: 0px;
+			margin: 5px 0;
+			font-size: 25px;
+			font-weight: normal;
+		}
+		
+		H1 {
+			font-size: 25px;
+			font-weight: normal;
+			color: #000;
+		}
+		
+		.headerFilm > span {
+			color: #666;
+			font-size: 13px;
+		}
+		
+		.film-img-box {
+			margin-left: 0;
+			position: relative;
+			left: -12px;
+			min-height: 205px;
+			margin-bottom: 15px;
+		}
+		
+		.film-img-box img {
+			border: 0;
+		}
+		
+		.photoBlock {
+			width: 210px;
+			padding: 0 0 0 0;
+			float: left;
+			position: relative;
+			font-size: 11px;
+		}
+		
+		.movie-buttons-container {
+			margin-bottom: 20px;
+		}
+		
+		.torrentbutton {
+			cursor: pointer;
+			border: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			appearance: none;
+			background-color: #f60;
+			border-radius: 3px;
+			color: #fff;
+			display: block;
+			font: 12px Arial, sans-serif;
+			font-weight: normal;
+			line-height: normal;
+			font-weight: bold;
+			height: 35px;
+			line-height: 36px;
+			-webkit-transition: background-color 0.1s, color 0.1s, border-color 0.1s;
+			-moz-transition: background-color 0.1s, color 0.1s, border-color 0.1s;
+			transition: background-color 0.1s, color 0.1s, border-color 0.1s;
+			text-align: center;
+			text-decoration: none;
+			width: 160px;
+			margin: 10px 0 10px 15px;
+			display:inline-block;
+		}
+		
+		.infoTable {
+			float: left;
+			display: block;
+		}
+		
+		.infoTable .info {
+			width: 465px;
+		}
+		
+		.info, .info * {
+			border-collapse: collapse;
+			margin: 0;
+			padding: 0;
+		}
+		
+		.info tr {
+			border-bottom: #DFDFDF solid 1px; 
+		}
+		
+		.info .type {
+			color: #f60;
+			width: 119px;
+			padding-left: 23px;
+		}
+		
+		.info td {
+			min-height: 14px;
+			vertical-align: top;
+			padding-bottom: 9px;
+			padding: 6px 0 6px 20px;
+		}
+		
+		td {
+			font-family: tahoma,verdana,arial;
+			font-size: 11px;
+			color: #000;
+		}
+		
+		.film-rating {
+			border-radius: 1px;
+			position: absolute;
+			left: 5px;
+			top: 5px;
+			z-index: 5;
+			box-shadow: none;
+			color: #fff;
+			width: 32px;
+			font-size: 11px;
+			font-weight: 600;
+			line-height: 13px;
+			padding: 3px 0 2px;
+			text-align: center;
+			font-family: Arial,Tahoma,Verdana,sans-serif;
+		}
+	</style>
+	</head>
+	<body>
+		<div class="shadow">
+			<div class="block1" style="background-color: #f2f2f2;">`;
+
+	const descriptionTemplate = `
+	<tr>
+		<td class="type">%s</td>
+		<td>
+			<div style="position: relative">
+				%s
+			</div>
+		</td>
+	</tr>`
+
+	for(const movie of movies) {
+		let descriptionBlock = [];
+		let buttonsBlock = [];
+		descriptionBlock.push(util.format(descriptionTemplate, "год", movie["year"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "Дата релиза", dateFormat(movie["pubDate"], '%d.%m.%Y')));
+		descriptionBlock.push(util.format(descriptionTemplate, "страна", movie["country"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "режиссёр", movie["directors"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "актёры", movie["actors"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "жанр", movie["genre"]));
+		if (movie["ratingAgeLimits"] > 0) {
+			descriptionBlock.push(util.format(descriptionTemplate, "возраст", movie["ratingAgeLimits"]));
+		}
+		descriptionBlock.push(util.format(descriptionTemplate, "продолжительность", movie["filmLength"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "рейтинг КиноПоиск", movie["rating"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "рейтинг IMDb", movie["ratingIMDb"]));
+		descriptionBlock.push(util.format(descriptionTemplate, "описание", movie["description"]));
+
+		for(const torrent of movie.torrents) {
+			buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" alt="${torrent['name']}">${torrent['type']}</button>`)
+		}
+
+		let ratingColor = movie["ratingFloat"] >= 7 ? "#3bb33b" : "#aaa";
+
+		html += `<div class="block2">
+		<div class="photoInfoTable">
+		<div class="headerFilm">
+			<h1 class="moviename" itemprop="name">${movie["nameRU"]}</h1>
+			<span itemprop="alternativeHeadline" style="${movie["nameEN"] ? '' : 'display: none;'}">${movie["nameEN"]}</span>
+		</div>
+		<div class="photoBlock">
+			<div class="film-img-box">
+			<div class="film-rating" style="background-color: ${ratingColor};">${movie["ratingFloat"]}</div>
+			<img src="${movie["posterURL"]}" alt="${movie["nameRU"]}" itemprop="image" width="205"></img>
+			</div>
+		</div>
+		<div class="infoTable">
+			<table class="info">
+				<tbody>
+					${descriptionBlock.join("\n")}
+				</tbody>
+			</table>
+		</div>
+		</div>
+		<div class="movie-buttons-container">
+			${buttonsBlock.join("\n")}
+		</div>
+	</div>`;
+	}
+
+	html += `</div></div></body></html>`;
+
+	if (!fs.existsSync(SAVE_PATH)) {
+		fs.mkdirSync(SAVE_PATH, {recursive: true});
+	}
+
+	fs.writeFileSync(path.join(SAVE_PATH, 'info.html'), html);
+
+}
+
+async function getFilmWithLinks(filmId) {
+	const torrents = await rutorLinks(filmId)
+	if (!Array.isArray(torrents) || torrents.length == 0) return null;
+
+	const detail = await filmDetail(filmId);
+	if (!detail) return null;
+	detail["torrents"] = torrents;
+
+	return detail;
+}
+
 async function build() {
 	const releases = await digitalReleases();
 	let movies = [];
 
-	for(const filmId of releases) {
-		const torrents = await rutorLinks(filmId)
-		if (!Array.isArray(torrents) || torrents.length == 0) continue;
+	// for(const filmId of releases) {
+	// 	const detail = await getFilmWithLinks(filmId);
+	// 	if (!detail) continue;
+	// 	movies.push(detail);
+	// }
 
-		const detail = await filmDetail(filmId);
-		detail["torrents"] = torrents;
-		movies.push(detail);
-	}
+	let wait = [];
+	for(const filmId of releases) 
+		wait.push(getFilmWithLinks(filmId));
+	movies = await Promise.all(wait);
 
-	// movies.sort(key = operator.itemgetter("ratingFloat"), reverse = True)
-	movies = movies.sort((a,b)=>{
-		let [aday, amonth, ayear] = a.data.rentData.premiereDigital.split('.').map(p=>parseInt(p));
-		let apubDate = new Date(ayear, amonth-1, aday, (new Date()).getTimezoneOffset() / 60 * -1).getTime();
-		let [bday, bmonth, byear] = b.data.rentData.premiereDigital.split('.').map(p=>parseInt(p));
-		let bpubDate = new Date(byear, bmonth-1, bday, (new Date()).getTimezoneOffset() / 60 * -1).getTime();
-		return bpubDate - apubDate;
-	})
+	// sort by release date
+	movies = movies.filter(m=>m!==null).sort((a,b)=>(b.pubDate.getTime() - a.pubDate.getTime()))
+
+	console.log('Movies:', movies.map(m=>`${m.nameRU}(${m.torrents.length})`));
+	console.log('Movies count:', movies.length);
+
 	saveRSS(movies);
+	saveHTML(movies);
 }
 
 
@@ -520,7 +864,8 @@ if (SERVER){
 		var filePath = '.' + request.url;
 	
 		switch (filePath) {
-			case './': {
+			case './html': 
+			case './html/': {
 				filePath = './info.html';
 			} break;
 			case './rss':
