@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  tmr:
+    container_name: tmr
+    image: theone74/tmr
+    restart: always
+    volumes:
+    - /local/place/for/html/and/rss:/home/node/data:Z
+    environment:
+      #SERVER: 1
+      RUN: 1
+      RSS_URL: http://tmr.example.com/rss
+      #INTERVAL: 0:00,5:00,10:00,15:00,20:00
+      #PORT: 3000
+      #PROXY: http://1.2.3.4:8080
+      #BASICAUTH: admin:pass
