@@ -1,7 +1,10 @@
 ### Запуск:
 
 `npm install`
+
 `RUN=1 SERVER=1 node index.js`
+
+---
 
 ```
 docker run -d --name=tmr \
