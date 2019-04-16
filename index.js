@@ -565,7 +565,7 @@ async function saveRSS(movies){
 							<div class="size">${torrent.size}</div>
 							<div class="desc">${movie.description}</div>
 							<div class="links">
-								<a href="${torrent.rutorpage}">${torrent.name}</a>
+								<a href="http://${RUTOR_DOMAIN}/${torrent.rutorpage}">${torrent.name}</a>
 								<a href="${torrent.magnet}">MAGNET</a>
 							</div>
 						</div>
@@ -822,7 +822,8 @@ async function saveHTML(movies) {
 		descriptionBlock.push(util.format(descriptionTemplate, "описание", movie["description"]));
 
 		for(const torrent of movie.torrents) {
-			buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" title="${torrent['name']}">${torrent['type']} (${torrent['size']})</button>`)
+			// buttonsBlock.push(`<button class="torrentbutton" style="" onclick="location.href='${torrent['link']}'" title="${torrent['name']}">${torrent['type']} (${torrent['size']})</button>`)
+			buttonsBlock.push(`<a class="torrentbutton" style="" href="${torrent['link']}" title="${torrent['name']}">${torrent['type']} (${torrent['size']})</a>`)
 		}
 
 		let ratingColor = movie["ratingFloat"] >= 7 ? "#3bb33b" : "#aaa";
